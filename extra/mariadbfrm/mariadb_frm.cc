@@ -29,6 +29,8 @@
 #include <my_dir.h>
 #include "field.h"
 
+#include "frm_parser.h"
+
 extern "C" {
   struct st_maria_plugin *mysql_mandatory_plugins[] = { NULL };
   struct st_maria_plugin *mysql_optional_plugins[] = { NULL };
@@ -96,25 +98,7 @@ static void cleanup_minimal_plugin_system()
   }
 }
 
-#define ha_resolve_by_name(thd, name, tmp) (mock_plugin_ref)
-#define ha_checktype(thd, type, check) (&mock_hton)
-#define ha_lock_engine(thd, hton) (mock_plugin_ref)
-#define plugin_hton(plugin) (&mock_hton)
-#define get_new_handler(share, root, hton) (NULL)
 
-#define plugin_lock_by_name(thd, name, type) (mock_plugin_ref)
-#define plugin_find_by_type(type) (mock_plugin_ref)
-#define ha_resolve_by_legacy_type(thd, type) (mock_plugin_ref)
-#define plugin_find_internal(name, type) (&mock_plugin_int)
-#define plugin_int_to_ref(plugin) (mock_plugin_ref)
-#define plugin_ref_to_int(plugin) (&mock_plugin_int)
-
-#define ha_default_handlerton(thd) (&mock_hton)
-#define ha_storage_engine_is_enabled(hton) (true)
-
-#define enum_value_with_check(thd, share, name, value, max_val) ((value <= max_val) ? value : 0)
-
-#define status_var_increment(x) do { } while(0)
 
 static plugin_ref mock_plugin_lock(THD *thd, plugin_ref ptr) {
   printf("DEBUG: mock_plugin_lock called with ptr=%p\n", ptr);
@@ -136,13 +120,8 @@ static void mock_plugin_unlock(THD *thd, plugin_ref ptr) {
 struct FakeTHD {
   MEM_ROOT mem_root;
   char *thread_stack;
-  
-  struct {
-    const CHARSET_INFO *character_set_client;
-    const CHARSET_INFO *collation_connection;
-    const CHARSET_INFO *collation_database;
-    const CHARSET_INFO *character_set_results;
-  } variables;
+
+  system_variables variables;
   
   struct {
     ulong feature_system_versioning;
@@ -167,12 +146,14 @@ static FakeTHD* init_fake_thd()
   init_alloc_root(PSI_NOT_INSTRUMENTED, &fake_thd->mem_root, 8192, 0, MYF(0));
   
   char stack_dummy;
+  global_system_variables.table_plugin = mock_plugin_ref;
   fake_thd->thread_stack = &stack_dummy;
   
   fake_thd->variables.character_set_client = &my_charset_utf8mb4_general_ci;
   fake_thd->variables.collation_connection = &my_charset_utf8mb4_general_ci;
   fake_thd->variables.collation_database = &my_charset_utf8mb4_general_ci;
   fake_thd->variables.character_set_results = &my_charset_utf8mb4_general_ci;
+  fake_thd->variables.table_plugin = mock_plugin_ref;
   
   fake_thd->status_var.feature_system_versioning = 0;
   fake_thd->status_var.feature_application_time_periods = 0;
@@ -363,7 +344,7 @@ static bool parse_frm_file(FakeTHD *fake_thd, const char *frm_path)
   printf("DEBUG: About to call init_from_binary_frm_image\n");
   fflush(stdout);
   
-  if (share->init_from_binary_frm_image((THD*)fake_thd, false, frm_data, frm_length))
+  if (parse_frm_binary_standalone((THD*)fake_thd, frm_data, frm_length, share))
   {
     fprintf(stderr, "Error: Cannot parse FRM file - init_from_binary_frm_image failed\n");
     goto cleanup;
