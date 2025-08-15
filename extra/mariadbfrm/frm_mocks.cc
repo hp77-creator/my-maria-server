@@ -11,6 +11,7 @@ public:
   FRM_Mock_Handler(handlerton *hton_arg, TABLE_SHARE *share_arg)
       : handler(hton_arg, share_arg)
   {
+    cached_table_flags = table_flags();
   }
 
   int open(const char *name, int mode, uint test_if_locked) override

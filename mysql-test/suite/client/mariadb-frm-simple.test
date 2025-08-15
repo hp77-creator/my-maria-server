@@ -1,0 +1,5 @@
+--echo MariaDB frm parser test #1
+--echo simple file
+
+
+ --exec $MARIADB_FRM $MYSQL_TEST_DIR/std_data/frm/table_simple.frm

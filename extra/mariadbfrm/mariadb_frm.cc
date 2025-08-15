@@ -423,15 +423,8 @@ static bool parse_frm_file(THD *fake_thd, const char *frm_path)
 
   String ddl_buffer;
 
-  printf("====WITHOUT HEADER:\n\n");
   show_create_table(fake_thd, &table_list, &ddl_buffer, NULL, WITHOUT_DB_NAME);
   printf("%s\n", ddl_buffer.c_ptr());
-
-  printf("\n====WITH HEADER:\n\n");
-  ddl_buffer.length(0);
-  show_create_table(fake_thd, &table_list, &ddl_buffer, NULL, WITH_DB_NAME);
-  printf("--\n-- Table structure for table `%s`\n--\n\n%s\n", table_name.str,
-         ddl_buffer.c_ptr());
   error= false;
 
 cleanup:
