@@ -85,12 +85,7 @@ static void init_frm_mock_handlerton()
 {
   frm_mock_hton_struct.create= frm_mock_create_handler;
   frm_mock_hton_struct.db_type= DB_TYPE_UNKNOWN;
-
   frm_mock_hton_struct.flags= HTON_NO_FLAGS;
-
-  static const char *engine_name= "FRM_MOCK";
-  static const char *engine_comment= "FRM parsing mock engine";
-
   frm_mock_hton_struct.slot= 0;
   frm_mock_hton_struct.savepoint_offset= 0;
 }

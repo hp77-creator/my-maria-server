@@ -331,7 +331,6 @@ static bool parse_frm_file(THD *fake_thd, const char *frm_path)
   bool error= true;
   TDC_element tdc{.ref_count= 1};
 
-  memset(&table_list, 0, sizeof(table_list));
   DEBUG("DEBUG: table_list initialized\n");
 
   DEBUG("DEBUG: About to read FRM file: %s\n", frm_path);
@@ -345,6 +344,7 @@ static bool parse_frm_file(THD *fake_thd, const char *frm_path)
     DEBUG("Error: Cannot extract database and table names from path\n");
     return 1;
   }
+  table_list.init_one_table(&db_name, &table_name, &table_name, TL_READ);
 
   DEBUG("DEBUG: Names extracted - db: %.*s, table: %.*s\n",
         (int) db_name.length, db_name.str, (int) table_name.length,
