@@ -47,12 +47,7 @@ extern void plugin_unlock(THD *thd, plugin_ref plugin);
 extern mysql_cond_t COND_start_thread;
 extern struct system_variables global_system_variables;
 
-PSI_mutex_key key_LOCK_start_thread= 0;
-PSI_mutex_key key_LOCK_status= 0;
-PSI_mutex_key key_LOCK_global_system_variables= 0;
-PSI_mutex_key key_LOCK_user_conn= 0;
 PSI_mutex_key key_LOCK_thread_id= 0;
-PSI_cond_key key_COND_start_thread= 0;
 PSI_mutex_key key_LOCK_plugin= 0;
 
 bool plugins_are_initialized= false;
@@ -90,11 +85,7 @@ static st_maria_plugin mock_plugin= {
     .author= "Nikita Malyavin",
     .descr= "Mock storage engine for FRM parsing",
     .license= PLUGIN_LICENSE_GPL,
-    .init= NULL,
-    .deinit= NULL,
     .version= 0x0100,
-    .status_vars= NULL,
-    .system_vars= NULL,
     .version_info= "1.0",
     .maturity= MariaDB_PLUGIN_MATURITY_STABLE};
 
@@ -102,15 +93,10 @@ static st_plugin_int mock_plugin_int= {
     .name= {const_cast<char *>("mock_storage_engine"), 19},
     .plugin= &mock_plugin,
     .data= nullptr,
-    .plugin_dl= NULL,
     .state= PLUGIN_IS_READY,
     .ref_count= 1,
     .load_option= PLUGIN_ON,
-    .locks_total= 0,
-    .mem_root= {0},
-    .system_vars= NULL,
-    .nbackups= 0,
-    .ptr_backup= NULL};
+    .mem_root= {}};
 
 static st_plugin_int *mock_plugin_ptr= &mock_plugin_int;
 static plugin_ref mock_plugin_ref= &mock_plugin_ptr;
@@ -126,7 +112,7 @@ static int init_thread_environment()
                    &LOCK_global_system_variables, MY_MUTEX_INIT_FAST);
   mysql_mutex_init(key_LOCK_user_conn, &LOCK_user_conn, MY_MUTEX_INIT_FAST);
   mysql_mutex_init(key_LOCK_thread_id, &LOCK_thread_id, MY_MUTEX_INIT_FAST);
-  mysql_cond_init(key_COND_start_thread, &COND_start_thread, NULL);
+  mysql_cond_init(key_COND_start_thread, &COND_start_thread, nullptr);
 
   return 0;
 }
@@ -190,9 +176,6 @@ static int init_plugin_system_complete()
   hton2plugin[0]= &mock_plugin_int;
   if (!plugin_array)
     return 1;
-
-  hton2plugin[0]= &mock_plugin_int;
-
   plugins_are_initialized= true;
 
   return 0;
@@ -218,12 +201,12 @@ static uchar *read_frm_file(const char *filename, size_t *length)
 {
   File file;
   MY_STAT stat_info;
-  uchar *buffer= NULL;
+  uchar *buffer= nullptr;
 
-  if (my_stat(filename, &stat_info, MYF(0)) == NULL)
+  if (my_stat(filename, &stat_info, MYF(0)) == nullptr)
   {
     DEBUG("Error: Cannot stat file '%s': %s\n", filename, strerror(errno));
-    return NULL;
+    return nullptr;
   }
 
   *length= stat_info.st_size;
@@ -232,7 +215,7 @@ static uchar *read_frm_file(const char *filename, size_t *length)
             (uchar *) my_malloc(PSI_NOT_INSTRUMENTED, *length, MYF(MY_WME))))
   {
     DEBUG("Error: Cannot allocate memory for FRM file\n");
-    return NULL;
+    return nullptr;
   }
 
   if ((file= mysql_file_open(key_file_frm, filename, O_RDONLY | O_SHARE,
@@ -240,7 +223,7 @@ static uchar *read_frm_file(const char *filename, size_t *length)
   {
     DEBUG("Error: Cannot open file '%s': %s\n", filename, strerror(errno));
     my_free(buffer);
-    return NULL;
+    return nullptr;
   }
 
   if (mysql_file_read(file, buffer, *length, MYF(MY_NABP)))
@@ -248,7 +231,7 @@ static uchar *read_frm_file(const char *filename, size_t *length)
     DEBUG("Error: Cannot read file '%s': %s\n", filename, strerror(errno));
     my_free(buffer);
     mysql_file_close(file, MYF(0));
-    return NULL;
+    return nullptr;
   }
 
   mysql_file_close(file, MYF(0));
@@ -339,10 +322,10 @@ static bool parse_frm_file(THD *fake_thd, const char *frm_path)
   DEBUG("DEBUG: Entering parse_frm_file\n");
 
   TABLE_LIST table_list;
-  uchar *frm_data= NULL;
+  uchar *frm_data= nullptr;
   size_t frm_length= 0;
-  TABLE_SHARE *share= NULL;
-  TABLE *table= NULL;
+  TABLE_SHARE *share= nullptr;
+  TABLE *table= nullptr;
   LEX_CSTRING db_name{}, table_name{};
   bool error= true;
   TDC_element tdc{.ref_count= 1};
@@ -453,7 +436,7 @@ static bool parse_frm_file(THD *fake_thd, const char *frm_path)
   String ddl_buffer;
 
   // Generate CREATE TABLE with mock engine
-  show_create_table(fake_thd, &table_list, &ddl_buffer, NULL, WITHOUT_DB_NAME);
+  show_create_table(fake_thd, &table_list, &ddl_buffer, nullptr, WITHOUT_DB_NAME);
 enum legacy_db_type real_engine_type = (enum legacy_db_type) (uint) frm_data[3];
 const char* real_engine_name = get_engine_name_from_legacy_type(real_engine_type);
 
@@ -496,7 +479,7 @@ int main(int argc, char **argv)
   MY_INIT(argv[0]);
   DEBUG("DEBUG: MY_INIT completed\n");
 
-  THD *fake_thd= NULL;
+  THD *fake_thd= nullptr;
   int exit_code= 0;
 
   if (argc < 2)

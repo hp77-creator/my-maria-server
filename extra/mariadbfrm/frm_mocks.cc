@@ -93,22 +93,6 @@ static void init_frm_mock_handlerton()
 
   frm_mock_hton_struct.slot= 0;
   frm_mock_hton_struct.savepoint_offset= 0;
-  frm_mock_hton_struct.close_connection= nullptr;
-  frm_mock_hton_struct.savepoint_set= nullptr;
-  frm_mock_hton_struct.savepoint_rollback= nullptr;
-  frm_mock_hton_struct.savepoint_rollback_can_release_mdl= nullptr;
-  frm_mock_hton_struct.savepoint_release= nullptr;
-  frm_mock_hton_struct.commit= nullptr;
-  frm_mock_hton_struct.rollback= nullptr;
-  frm_mock_hton_struct.prepare= nullptr;
-  frm_mock_hton_struct.recover= nullptr;
-  frm_mock_hton_struct.commit_by_xid= nullptr;
-  frm_mock_hton_struct.rollback_by_xid= nullptr;
-  frm_mock_hton_struct.drop_database= nullptr;
-  frm_mock_hton_struct.panic= nullptr;
-  frm_mock_hton_struct.start_consistent_snapshot= nullptr;
-  frm_mock_hton_struct.flush_logs= nullptr;
-  frm_mock_hton_struct.show_status= nullptr;
 }
 
 handlerton *ha_default_handlerton(THD *thd)
