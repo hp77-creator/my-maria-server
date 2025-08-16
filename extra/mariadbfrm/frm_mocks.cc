@@ -73,7 +73,7 @@ public:
 static handler *frm_mock_create_handler(handlerton *hton, TABLE_SHARE *table,
                                         MEM_ROOT *mem_root);
 
-static handlerton frm_mock_hton_struct= {0};
+static handlerton frm_mock_hton_struct= {};
 
 static handler *frm_mock_create_handler(handlerton *hton, TABLE_SHARE *table,
                                         MEM_ROOT *mem_root)

@@ -18,6 +18,13 @@ SET(FRM_PARSER_SOURCES mariadb_frm.cc frm_mocks.cc
 
 
 MYSQL_ADD_EXECUTABLE(mariadb-frm ${FRM_PARSER_SOURCES})
+# Enable C++20 for this target only
+target_compile_features(mariadb-frm PRIVATE cxx_std_20)
+
+# Disable warnings that conflict with designated initializers
+target_compile_options(mariadb-frm PRIVATE
+        -Wno-missing-field-initializers
+        -Wno-unused-label)
 
 TARGET_COMPILE_DEFINITIONS(mariadb-frm PRIVATE MYSQL_SERVER)
 
