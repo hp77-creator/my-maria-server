@@ -28,6 +28,7 @@
 #include "sql_show.h"
 #include "table_cache.h"
 #include "sql_table.h"
+#include "sql_plugin.h"
 
 #define DEBUG(fmt, ...)                                                       \
   do                                                                          \
@@ -99,7 +100,7 @@ static st_plugin_int mock_plugin_int= {
     .mem_root= {}};
 
 static st_plugin_int *mock_plugin_ptr= &mock_plugin_int;
-static plugin_ref mock_plugin_ref= &mock_plugin_ptr;
+static plugin_ref mock_plugin_ref= plugin_int_to_ref(mock_plugin_ptr);
 
 extern mysql_mutex_t LOCK_plugin;
 
