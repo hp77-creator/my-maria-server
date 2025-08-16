@@ -29,6 +29,7 @@
 #include "table_cache.h"
 #include "sql_table.h"
 #include "sql_plugin.h"
+#include "mysqld.h"
 
 #define DEBUG(fmt, ...)                                                       \
   do                                                                          \
@@ -57,7 +58,7 @@ struct st_plugin_int **plugin_array= nullptr;
 uint plugin_array_size= 0;
 
 ulong server_id= 1;
-char server_uuid[MY_UUID_SIZE + 1];
+char server_uuid[37] = "12345678-1234-1234-1234-123456789012";
 ulong binlog_cache_use= 0;
 ulong binlog_cache_disk_use= 0;
 ulong aborted_threads= 0;
@@ -142,8 +143,8 @@ static int init_early_variables()
 {
   sf_leaking_memory= 1;
   mysqld_server_started= mysqld_server_initialized= 0;
+  default_charset_info= &my_charset_utf8mb3_general_ci;
 
-  strcpy(server_uuid, "12345678-1234-1234-1234-123456789012");
 
   return 0;
 }
