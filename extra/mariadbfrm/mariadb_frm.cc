@@ -93,11 +93,17 @@ static st_maria_plugin mock_plugin= {
 static st_plugin_int mock_plugin_int= {
     .name= {const_cast<char *>("mock_storage_engine"), 19},
     .plugin= &mock_plugin,
-    .data= nullptr,
-    .state= PLUGIN_IS_READY,
-    .ref_count= 1,
-    .load_option= PLUGIN_ON,
-    .mem_root= {}};
+    .plugin_dl= nullptr,      
+    .ptr_backup= nullptr,     
+    .nbackups= 0,            
+    .state= PLUGIN_IS_READY,  
+    .ref_count= 1,           
+    .locks_total= 0,         
+    .data= nullptr,          
+    .mem_root= {},          
+    .system_vars= nullptr,   
+    .load_option= PLUGIN_ON  
+};
 
 static st_plugin_int *mock_plugin_ptr= &mock_plugin_int;
 static plugin_ref mock_plugin_ref= plugin_int_to_ref(mock_plugin_ptr);
