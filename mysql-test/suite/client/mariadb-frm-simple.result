@@ -1,0 +1,5 @@
+MariaDB frm parser test #1
+simple file
+CREATE TABLE `table_simple` (
+  `id` int(11) DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3 COLLATE=utf8mb3_general_ci

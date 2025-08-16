@@ -38,6 +38,12 @@
 
 extern mysql_mutex_t LOCK_start_thread, LOCK_status,
     LOCK_global_system_variables, LOCK_user_conn, LOCK_thread_id;
+
+// Function declarations for engine resolution
+extern handlerton *ha_resolve_by_legacy_type(THD *thd, enum legacy_db_type db_type);
+extern const char *ha_resolve_storage_engine_name(const transaction_participant *db_type);
+extern plugin_ref ha_lock_engine(THD *thd, const handlerton *hton);
+extern void plugin_unlock(THD *thd, plugin_ref plugin);
 extern mysql_cond_t COND_start_thread;
 extern struct system_variables global_system_variables;
 
@@ -250,6 +256,29 @@ static uchar *read_frm_file(const char *filename, size_t *length)
 }
 
 /**
+  Map legacy DB type to engine name
+*/
+static const char* get_engine_name_from_legacy_type(enum legacy_db_type db_type)
+{
+  switch (db_type) 
+  {
+    case DB_TYPE_MYISAM:        return "MyISAM";
+    case DB_TYPE_INNODB:        return "InnoDB";
+    case DB_TYPE_ARIA:          return "Aria"; 
+    case DB_TYPE_ARCHIVE_DB:    return "ARCHIVE";
+    case DB_TYPE_CSV_DB:        return "CSV";
+    case DB_TYPE_HEAP:          return "MEMORY";
+    case DB_TYPE_BLACKHOLE_DB:  return "BLACKHOLE";
+    case DB_TYPE_FEDERATED_DB:  return "FEDERATED";
+    case DB_TYPE_MRG_MYISAM:    return "MRG_MyISAM";
+    case DB_TYPE_PARTITION_DB:  return "partition";
+    case DB_TYPE_SEQUENCE:      return "SEQUENCE";
+    case DB_TYPE_S3:            return "S3";
+    default:                    return "UNKNOWN";
+  }
+}
+
+/**
   Extract database and table name from FRM file path
 */
 static bool extract_db_table_names(const char *frm_path, LEX_CSTRING *db_name,
@@ -423,8 +452,25 @@ static bool parse_frm_file(THD *fake_thd, const char *frm_path)
 
   String ddl_buffer;
 
+  // Generate CREATE TABLE with mock engine
   show_create_table(fake_thd, &table_list, &ddl_buffer, NULL, WITHOUT_DB_NAME);
-  printf("%s\n", ddl_buffer.c_ptr());
+enum legacy_db_type real_engine_type = (enum legacy_db_type) (uint) frm_data[3];
+const char* real_engine_name = get_engine_name_from_legacy_type(real_engine_type);
+
+
+  const char* original_ddl = ddl_buffer.c_ptr();
+  const char* mock_pos = strstr(original_ddl, "mock_storage_engine");
+  if (mock_pos) {
+    String corrected_ddl;
+    corrected_ddl.append(original_ddl, mock_pos - original_ddl);
+    corrected_ddl.append(real_engine_name, strlen(real_engine_name));
+    const char* remainder = mock_pos + strlen("mock_storage_engine");
+    corrected_ddl.append(remainder, strlen(remainder));
+    printf("%s\n", corrected_ddl.c_ptr());
+  } else {
+    printf("%s\n", original_ddl);
+  }
+
   error= false;
 
 cleanup:
