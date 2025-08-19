@@ -26,7 +26,11 @@ target_compile_options(mariadb-frm PRIVATE
         -Wno-missing-field-initializers
         -Wno-unused-label)
 
-TARGET_COMPILE_DEFINITIONS(mariadb-frm PRIVATE MYSQL_SERVER)
+TARGET_COMPILE_DEFINITIONS(mariadb-frm PRIVATE
+        MYSQL_SERVER
+        WITHOUT_WSREP
+)
+
 
 TARGET_LINK_LIBRARIES(mariadb-frm
     sql

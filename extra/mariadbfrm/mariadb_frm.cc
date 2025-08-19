@@ -202,6 +202,18 @@ static THD *create_minimal_thd()
   return thd;
 }
 
+static int init_sql_functions()
+{
+  if (item_create_init())
+    return 1;
+  return 0;
+}
+
+static void cleanup_sql_functions()
+{
+  item_create_cleanup();
+}
+
 /**
   Read FRM file into memory
 */
@@ -430,6 +442,8 @@ static bool parse_frm_file(THD *fake_thd, const char *frm_path)
   {
     DEBUG("Error: Cannot allocate TABLE structure\n");
   }
+  THD *saved_current_thd = current_thd;
+  set_current_thd(fake_thd);
   open_table_from_share(fake_thd, share, &table_name, HA_OPEN_KEYFILE,
                         EXTRA_RECORD, 0, table, false); // todo error handling
 
@@ -465,6 +479,7 @@ const char* real_engine_name = get_engine_name_from_legacy_type(real_engine_type
   error= false;
 
 cleanup:
+  set_current_thd(saved_current_thd);
   if (share)
   {
     free_root(&share->mem_root, MYF(0));
@@ -504,6 +519,7 @@ int main(int argc, char **argv)
   init_thread_environment();
   init_early_variables();
   mysql_init_variables();
+  init_sql_functions();
   if (init_plugin_system_complete())
   {
     DEBUG("Error: Cannot initialize required subsystems\n");
@@ -529,6 +545,7 @@ int main(int argc, char **argv)
   mysql_mutex_destroy(&LOCK_user_conn);
   mysql_mutex_destroy(&LOCK_thread_id);
   mysql_cond_destroy(&COND_start_thread);
+  cleanup_sql_functions();
   my_thread_end();
   my_end(0);
   return exit_code;
