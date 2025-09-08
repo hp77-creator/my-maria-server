@@ -15823,7 +15823,7 @@ end_sj_materialize(JOIN *join, JOIN_TAB *join_tab, bool end_of_records)
     in the case described in Notes below.
     If a hint cannot be applied it is either ignored or other tables' join
     buffering choices are revised to ensure the consistency of buffers chains.
- 
+
   NOTES
     An inner table of a nested outer join or a nested semi-join can be currently
     joined only when a linked cache object is employed. In these cases setting

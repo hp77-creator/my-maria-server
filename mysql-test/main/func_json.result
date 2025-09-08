@@ -46,6 +46,8 @@ json_query('{"key1":123, "key1": [1,2,3]}', '$.key1')
 select json_query('{"key1":123, "key1": [1,2,3]}', concat('$', repeat('.k', 1000))) as exp;
 exp
 NULL
+Warnings:
+Warning	4043	Limit of 32 on JSON path depth is reached in argument 2 to function 'json_query' at position 65
 select json_array();
 json_array()
 []
