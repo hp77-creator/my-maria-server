@@ -12392,3 +12392,7 @@ ER_CANNOT_CAST_ON_IDENT1_ASSIGNMENT_FOR_OPERATION
         eng "Cannot cast '%s' as '%s' in assignment of %sQ for operation %s"
 ER_CANNOT_CAST_ON_IDENT2_ASSIGNMENT_FOR_OPERATION
         eng "Cannot cast '%s' as '%s' in assignment of %sQ.%sQ for operation %s"
+ER_WARN_AMBIGUOUS_QB_NAME
+	eng "Query block name %s is ambiguous for %s hint"
+ER_WARN_IMPLICIT_QB_NAME_FOR_UNION
+	eng "Implicit query block name %s is not supported for derived tables and views with UNION/EXCEPT/INTERSECT and is ignored for %s hint"
